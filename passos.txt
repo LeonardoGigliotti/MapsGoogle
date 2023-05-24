@@ -1,0 +1,128 @@
+=========
+Dar Npm i
+npm install @capacitor/geolocation
+npm install @capacitor/google-maps
+npx cap sync ou ionic cap sync
+npm install @angular/service-worker
+
+==========================================
+adicionar no ion-content do home.page.html
+<capacitor-google-map #map></capacitor-google-map>
+
+===========================
+adicionar no home.page.scss
+capacitor-google-map {
+  display: inline-block;
+  width: 100%;
+  height: 100%;
+}
+
+===============
+No home.page.ts
+import { Component, ElementRef, ViewChild } from '@angular/core';
+import { GoogleMap } from '@capacitor/google-maps';
+import { environment } from 'src/environments/environment';
+import { Geolocation, Position } from '@capacitor/geolocation';
+
+@Component({
+  selector: 'app-home',
+  templateUrl: 'home.page.html',
+  styleUrls: ['home.page.scss'],
+})
+export class HomePage {
+  @ViewChild('map')
+  mapRef!: ElementRef<HTMLElement>;
+  Map!: GoogleMap;
+
+  constructor() {}
+
+  ionViewWillEnter() {
+    this.createMap();
+  }
+
+  async createMap() {
+    this.Map = await GoogleMap.create({
+      id: 'my-map',
+      element: this.mapRef.nativeElement,
+      apiKey: environment.mapsKey,
+      config: {
+        center: {
+          lat: -22.489207,
+          lng: -48.546470,
+        },
+        zoom: 8,
+      },
+    });
+    this.buscarPosicao();
+  }
+
+  async buscarPosicao(){
+    const coordinates = await Geolocation.getCurrentPosition();
+    console.log('Current position:', coordinates);
+    this.adicionarMarcador(coordinates);
+    return coordinates;
+  }
+
+  async adicionarMarcador(coordinates: Position){
+      // Add a marker to the map
+  const markerId = await this.Map.addMarker({
+    coordinate: {
+      lat: coordinates.coords.latitude,
+      lng: coordinates.coords.longitude
+  }
+
+});
+this.zoomNoMarcador(coordinates);
+  }
+
+  zoomNoMarcador(coordinates: Position){
+    this.Map.setCamera({
+      coordinate:{
+        lat: coordinates.coords.latitude,
+        lng: coordinates.coords.longitude
+      }
+    });
+  }
+}
+
+================
+No app.module.ts
+import { NgModule, isDevMode } from '@angular/core';
+import { BrowserModule } from '@angular/platform-browser';
+import { RouteReuseStrategy } from '@angular/router';
+import { IonicModule, IonicRouteStrategy } from '@ionic/angular';
+import { AppComponent } from './app.component';
+import { AppRoutingModule } from './app-routing.module';
+import { ServiceWorkerModule } from '@angular/service-worker';
+
+@NgModule({
+  declarations: [AppComponent],
+  imports: [BrowserModule, IonicModule.forRoot(), AppRoutingModule, ServiceWorkerModule.register('ngsw-worker.js', {
+  enabled: !isDevMode(),
+  registrationStrategy: 'registerWhenStable:30000'
+})],
+  providers: [{ provide: RouteReuseStrategy, useClass: IonicRouteStrategy }],
+  bootstrap: [AppComponent],
+})
+export class AppModule {}
+
+====================================
+No home.module.ts adicionar o import
+import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+
+No NgModule
+schemas: [CUSTOM_ELEMENTS_SCHEMA],
+
+===============
+No environment.ts
+export const environment = {
+  production: false,
+  mapsKey: 'AIzaSyD6v5fULYIQf3DgoRdHRxCahyUMBJSYyjc'
+};
+
+======================
+No environment.prod.ts
+export const environment = {
+  production: true,
+  mapsKey: 'AIzaSyD6v5fULYIQf3DgoRdHRxCahyUMBJSYyjc'
+};
