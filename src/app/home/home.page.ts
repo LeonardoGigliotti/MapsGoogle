@@ -26,8 +26,8 @@ export class HomePage {
       apiKey: environment.mapsKey,
       config: {
         center: {
-          lat: -22.489207,
-          lng: -48.546470,
+          lat: -22.489146,
+          lng: -48.546432,
         },
         zoom: 8,
       },
